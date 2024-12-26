@@ -6,7 +6,7 @@ import {
 	insertUserSecretsId,
 	getUserSecretsFilePath,
 	getOrGenerateSecretFile,
-} from './CsProj';
+} from './csProj';
 import {v4 as uuid} from 'uuid';
 import path from 'path';
 
@@ -24,28 +24,21 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showInformationMessage('No .csproj files found.');
 				return ;
 			}
-			const files = csProjFiles.map(f=> {
-				
-				return {
-					path: f,
-					name: path.basename(f)
-				};
-			});
-			const selectedFileName = await vscode.window.showQuickPick(files.map(f => f.name), 
+			const selectedFileName = await vscode.window.showQuickPick(csProjFiles.map(f => f.fileName), 
 				{placeHolder: 'Select a .csproj file'});
 
 			if (!selectedFileName){
 				vscode.window.showInformationMessage('No file selected.');
 				return;
 			}
-			const selectedFile = files.find(f => f.name === selectedFileName)?.path;
-			if (!selectedFile ){
+			const fullPath = csProjFiles.find(f => f.fileName === selectedFileName)?.fullPath;
+			if (!fullPath ){
 
 				vscode.window.showInformationMessage('No file selected.');
 				return;
 			}
 			let userSecretsId = undefined;
-			const parsedDocument = await parseDocument(selectedFile);
+			const parsedDocument = await parseDocument(fullPath);
 			userSecretsId = await getUserSecretsId(parsedDocument);
 			if (!userSecretsId){
 				const userSelection =await vscode.window.showWarningMessage("couldn't find user secret, do you want to add new one?",
@@ -54,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 						return;
 					}
 					userSecretsId = uuid();
-					await insertUserSecretsId( selectedFile, parsedDocument, userSecretsId);
+					await insertUserSecretsId( fullPath, parsedDocument, userSecretsId);
 			}
 			const userSecretFilePath = await getUserSecretsFilePath(userSecretsId);
 			if (!userSecretFilePath){
@@ -67,7 +60,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 			const file = await getOrGenerateSecretFile(userSecretFilePath!)	;
 			const document = await vscode.workspace.openTextDocument(userSecretFilePath!);
-			// const document = await vscode.workspace.openTextDocument(selectedFile!);
 			await vscode.window.showTextDocument(document);
 
 		}

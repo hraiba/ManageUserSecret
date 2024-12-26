@@ -3,41 +3,29 @@ import * as path from "path";
 import { parseStringPromise, Builder } from "xml2js";
 import * as os from "os";
 import * as vscode from 'vscode';
-    
-export const getAllFilesWithExtension = (
+import { CsProjFileInfo } from "./types";
+
+export const getAllFilesWithExtension = async (
   dir: string,
   extension: string
-): Promise<string[]> => {
-  return new Promise((resolve, reject) => {
-    const results: string[] = [];
-
-    fs.readdir(dir, { withFileTypes: true }, (err, entries) => {
-      if (err) {
-        return reject(err);
+): Promise<CsProjFileInfo[]> => {
+  const results: CsProjFileInfo[] = [];
+  try {
+    const entries = await fs.readdirSync(dir, {withFileTypes: true});
+    const tasks = entries.map(async (entry)=> {
+      const fileInfo = {fullPath: path.join(dir, entry.name), fileName: entry.name};
+      if (entry.isDirectory()){
+        const subResults = await getAllFilesWithExtension(fileInfo.fullPath, extension);
+        results.push(...subResults);
+      } else if (entry.isFile() && entry.name.endsWith(extension)){
+        results.push(fileInfo);
       }
-
-      const tasks = entries.map((entry) => {
-        const fullPath = path.join(dir, entry.name);
-
-        if (entry.isDirectory()) {
-          // Recursively search in subdirectories
-          return getAllFilesWithExtension(fullPath, extension).then(
-            (subResults) => {
-              results.push(...subResults);
-            }
-          );
-        } else if (entry.isFile() && entry.name.endsWith(extension)) {
-          // Add matching file to the results
-          results.push(fullPath);
-        }
-      });
-
-      // Wait for all asynchronous tasks to complete
-      Promise.all(tasks)
-        .then(() => resolve(results))
-        .catch(reject);
     });
-  });
+    await Promise.all(tasks);
+    return results;
+  } catch(err){
+    throw err;
+  }
 };
 
 export const parseDocument = async (path: string): Promise<string> => {
