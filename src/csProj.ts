@@ -1,9 +1,13 @@
-import * as fs from "fs";
 import * as path from "path";
 import { parseStringPromise, Builder } from "xml2js";
 import * as os from "os";
-import * as vscode from 'vscode';
-import { CsProjFileInfo } from "./types";
+import * as vscode from "vscode";
+import {
+  CsProjFileInfo,
+  ProjectStructure,
+  SECRETS_CONFIG,
+  SupportedPlatform,
+} from "./types";
 
 export const getAllFilesWithExtension = async (
   dir: string,
@@ -11,96 +15,110 @@ export const getAllFilesWithExtension = async (
 ): Promise<CsProjFileInfo[]> => {
   const results: CsProjFileInfo[] = [];
   try {
-    const entries = await fs.readdirSync(dir, {withFileTypes: true});
-    const tasks = entries.map(async (entry)=> {
-      const fileInfo = {fullPath: path.join(dir, entry.name), fileName: entry.name};
-      if (entry.isDirectory()){
-        const subResults = await getAllFilesWithExtension(fileInfo.fullPath, extension);
+    const direUri = vscode.Uri.file(dir);
+    const entries = await vscode.workspace.fs.readDirectory(direUri);
+    const tasks = entries.map(async ([name, type]) => {
+      const fullPath = path.join(dir, name);
+      const fileInfo = { fullPath: fullPath, fileName: name };
+      if (type === vscode.FileType.Directory) {
+        const subResults = await getAllFilesWithExtension(fullPath, extension);
         results.push(...subResults);
-      } else if (entry.isFile() && entry.name.endsWith(extension)){
+      } else if (type === vscode.FileType.File && name.endsWith(extension)) {
         results.push(fileInfo);
       }
     });
     await Promise.all(tasks);
     return results;
-  } catch(err){
+  } catch (err) {
     throw err;
   }
 };
 
-export const parseDocument = async (path: string): Promise<string> => {
-  const fileContent = await fs.readFileSync(path, "utf-8");
-  return await parseStringPromise(fileContent);
+export const parseDocument = async (
+  path: string
+): Promise<ProjectStructure> => {
+  try {
+    const uri = vscode.Uri.file(path);
+    const fileContent = await vscode.workspace.fs.readFile(uri);
+    const parsedContent = await parseStringPromise(
+      new TextDecoder().decode(fileContent)
+    );
+    if (!isValidProjectStructure(parsedContent)) {
+      throw new Error("Invalid project file structure");
+    }
+    return parsedContent;
+  } catch (error: any) {
+    throw new Error(`Failed to parse project file: ${error.message}`);
+  }
 };
 
 export const getUserSecretsId = async (
-  parsedXml: any
+  parsedDocument: ProjectStructure
 ): Promise<string | undefined> => {
-  const project = parsedXml.Project;
-
-  if (!project || !project.PropertyGroup) {
-    throw new Error("invalid .csproj file structure.");
+  try {
+    if (!isValidProjectStructure(parsedDocument)) {
+      throw new Error("Invalid project file structure");
+    }
+    const propertyGroup = Array.isArray(parsedDocument.Project.PropertyGroup)
+      ? parsedDocument.Project.PropertyGroup[0]
+      : parsedDocument.Project.PropertyGroup;
+    return propertyGroup.UserSecretsId?.[0];
+  } catch (error: any) {
+    throw new Error(`Failed to get UserSecretsId: ${error.message}`);
   }
-
-  const propertyGroup = Array.isArray(project.PropertyGroup)
-    ? project.PropertyGroup[0]
-    : project.PropertyGroup;
-  let userSecretsId = propertyGroup.UserSecretsId;
-  return userSecretsId ? userSecretsId[0] : undefined;
 };
 
 export const insertUserSecretsId = async (
   path: string,
-  parsedDocument: any,
+  parsedDocument: ProjectStructure,
   userSecretsId: string
 ): Promise<string> => {
-  const project = parsedDocument.Project;
+  try {
+    if (!isValidProjectStructure(parsedDocument)) {
+      throw new Error("Invalid project file structure");
+    }
+    const propertyGroup = Array.isArray(parsedDocument.Project.PropertyGroup)
+      ? parsedDocument.Project.PropertyGroup[0]
+      : parsedDocument.Project.PropertyGroup;
 
-  if (!project || !project.PropertyGroup) {
-    throw new Error("invalid .csproj file structure.");
+    propertyGroup.UserSecretsId = [userSecretsId];
+    const builder = new Builder();
+    const updatedDocument = builder.buildObject(parsedDocument);
+    const uri = vscode.Uri.file(path);
+    await vscode.workspace.fs.writeFile(
+      uri,
+      new TextEncoder().encode(updatedDocument)
+    );
+    return updatedDocument;
+  } catch (error: any) {
+    throw new Error(`Failed to insert UserSecretsId: ${error.message}`);
   }
-
-  const propertyGroup = Array.isArray(project.PropertyGroup)
-    ? project.PropertyGroup[0]
-    : project.PropertyGroup;
-  propertyGroup.UserSecretsId = [userSecretsId];
-
-  const builder = new Builder();
-  const updatedDocument = builder.buildObject(parsedDocument);
-  await fs.promises.writeFile(path, updatedDocument, "utf-8");
-  return updatedDocument;
 };
 
 export const getUserSecretsFilePath = async (
   userSecretsId: string | undefined
 ): Promise<string | undefined> => {
-  if (!userSecretsId) {
+  try {
+    if (!userSecretsId) {
+      return undefined;
+    }
+
+    const platform = os.platform() as SupportedPlatform;
+    const config = SECRETS_CONFIG[platform];
+    if (!config) {
+      throw new Error(`Unsupported platform: ${platform}`);
+    }
+
+    return path.join(
+      os.homedir(),
+      ...config.basePath,
+      userSecretsId,
+      config.filename
+    );
+  } catch (error: any) {
+    console.error(`Failed to get secrets file path: ${error.message}`);
     return undefined;
   }
-
-  if (os.platform() === "win32") {
-    return path.join(
-      os.homedir(),
-      "AppData",
-      "Roaming",
-      "Microsoft",
-      "UserSecrets",
-      userSecretsId,
-      "secrets.json"
-    );
-  }
-
-  if (os.platform() === "linux" || os.platform() === "darwin") {
-    return path.join(
-      os.homedir(),
-      ".microsoft",
-      "usersecrets",
-      userSecretsId,
-      "secrets.json"
-    );
-  }
-
-  return undefined;
 };
 
 export const ensureUserSecretFile = async (
@@ -110,15 +128,21 @@ export const ensureUserSecretFile = async (
     const uri = vscode.Uri.file(filePath);
     try {
       await vscode.workspace.fs.stat(uri);
-    }catch(error){
-      const content = new TextEncoder().encode('{\n}');
-      await vscode.workspace.fs.writeFile(uri, content); 
+    } catch (error) {
+      const content = new TextEncoder().encode("{\n}");
+      await vscode.workspace.fs.writeFile(uri, content);
     }
 
-    const fileContent = await vscode.workspace.fs.readFile(uri) ;
+    const fileContent = await vscode.workspace.fs.readFile(uri);
     return new TextDecoder().decode(fileContent);
-  }catch(error: any){
+  } catch (error: any) {
     throw new Error(`Failed to ensure secret file: ${error.message}`);
   }
 };
-
+const isValidProjectStructure = (doc: any): doc is ProjectStructure => {
+  return (
+    doc?.Project?.PropertyGroup &&
+    (Array.isArray(doc.Project.PropertyGroup) ||
+      typeof doc.Project.PropertyGroup === "object")
+  );
+};
