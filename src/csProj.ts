@@ -29,7 +29,7 @@ export const getAllFilesWithExtension = async (
 };
 
 export const parseDocument = async (path: string): Promise<string> => {
-  const fileContent = await fs.promises.readFile(path, "utf-8");
+  const fileContent = await fs.readFileSync(path, "utf-8");
   return await parseStringPromise(fileContent);
 };
 
@@ -103,16 +103,22 @@ export const getUserSecretsFilePath = async (
   return undefined;
 };
 
-export const getOrGenerateSecretFile = async (
+export const ensureUserSecretFile = async (
   filePath: string
 ): Promise<string> => {
-  const fileExists = await fs.existsSync(filePath);
-  if (!fileExists) {
-    const uri = vscode.Uri.parse(filePath);
-    const content = new TextEncoder().encode('{}');
-    vscode.workspace.fs.writeFile(uri, content);
+  try {
+    const uri = vscode.Uri.file(filePath);
+    try {
+      await vscode.workspace.fs.stat(uri);
+    }catch(error){
+      const content = new TextEncoder().encode('{\n}');
+      await vscode.workspace.fs.writeFile(uri, content); 
+    }
+
+    const fileContent = await vscode.workspace.fs.readFile(uri) ;
+    return new TextDecoder().decode(fileContent);
+  }catch(error: any){
+    throw new Error(`Failed to ensure secret file: ${error.message}`);
   }
-  const file = await fs.promises.readFile(filePath, "utf-8");
-  return file;
 };
 

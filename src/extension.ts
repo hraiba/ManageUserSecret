@@ -5,7 +5,7 @@ import {
 	parseDocument,
 	insertUserSecretsId,
 	getUserSecretsFilePath,
-	getOrGenerateSecretFile,
+	ensureUserSecretFile,
 } from './csProj';
 import {v4 as uuid} from 'uuid';
 import path from 'path';
@@ -54,11 +54,8 @@ export function activate(context: vscode.ExtensionContext) {
 				vscode.window.showErrorMessage('platform is not supported');
 				return;
 			}
-		
-			vscode.window.showInformationMessage(`userSecretsId: ${userSecretsId}`);
-			vscode.window.showWarningMessage(`userSecrets File path: ${userSecretFilePath}`);
 
-			const file = await getOrGenerateSecretFile(userSecretFilePath!)	;
+			const file = await ensureUserSecretFile(userSecretFilePath!)	;
 			const document = await vscode.workspace.openTextDocument(userSecretFilePath!);
 			await vscode.window.showTextDocument(document);
 
