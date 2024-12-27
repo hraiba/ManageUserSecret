@@ -17,9 +17,9 @@ export  const activate = (context: vscode.ExtensionContext) => {
         }
 
         const workspacePath = vscode.workspace.workspaceFolders[0].uri.fsPath;
-
         try {
-            const csProjFiles = await getAllFilesWithExtension(workspacePath, '.csproj');
+			const maxDepth = vscode.workspace.getConfiguration('usersecret').get<number>('maxDepth', 3);
+            const csProjFiles = await getAllFilesWithExtension(workspacePath, '.csproj', maxDepth);
 
             if (csProjFiles.length === 0) {
                 vscode.window.showInformationMessage('No .csproj files found.');

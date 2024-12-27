@@ -11,22 +11,37 @@ import {
 
 export const getAllFilesWithExtension = async (
   dir: string,
-  extension: string
+  extension: string,
+  maxDepth: number,
+  currentDepth: number = 0
 ): Promise<CsProjFileInfo[]> => {
   const results: CsProjFileInfo[] = [];
+
+  if (currentDepth > maxDepth) {
+    return results;
+  }
+
   try {
-    const direUri = vscode.Uri.file(dir);
-    const entries = await vscode.workspace.fs.readDirectory(direUri);
+    const dirUri = vscode.Uri.file(dir);
+    const entries = await vscode.workspace.fs.readDirectory(dirUri);
+
     const tasks = entries.map(async ([name, type]) => {
       const fullPath = path.join(dir, name);
       const fileInfo = { fullPath: fullPath, fileName: name };
+
       if (type === vscode.FileType.Directory) {
-        const subResults = await getAllFilesWithExtension(fullPath, extension);
+        const subResults = await getAllFilesWithExtension(
+          fullPath,
+          extension,
+          maxDepth,
+          currentDepth + 1
+        );
         results.push(...subResults);
       } else if (type === vscode.FileType.File && name.endsWith(extension)) {
         results.push(fileInfo);
       }
     });
+
     await Promise.all(tasks);
     return results;
   } catch (err) {
