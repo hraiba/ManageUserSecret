@@ -25,8 +25,8 @@
     },
     "commands": [
       {
-        "command": "usersecret.userSecret",
-        "title": "User Secret"
+        "command": "dotnet.manageUserSecrets",
+        "title": "Manage .NET User Secrets"
       }
     ]
   },
