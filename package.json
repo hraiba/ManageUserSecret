@@ -11,6 +11,10 @@
   ],
   "publisher": "MoHraiba",
   "icon": "images/asrar.jpg",
+  "repository": {
+    "type": "git",
+    "url":"https://github.com/hraiba/ManageUserSecret.git"
+  },
   "license": "MIT",
   "activationEvents": [],
   "main": "./out/extension.js",
