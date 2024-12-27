@@ -1,7 +1,7 @@
 {
   "name": "usersecret",
   "displayName": "UserSecret",
-  "description": "manage .NET user secret",
+  "description": "Manage .NET user secret",
   "version": "0.2.0",
   "engines": {
     "vscode": "^1.96.0"
@@ -10,11 +10,27 @@
     "Other"
   ],
   "publisher": "MoHraiba",
-  "icon": "images/asrar.jpg",
+  "icon": "images/asrar.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/hraiba/ManageUserSecret.git"
   },
+  "keywords": [
+    "user secret",
+    "user secrets",
+    "manage user secret",
+    "manage user secrets",
+    "dotnet user secret",
+    "dotnet user secrets",
+    ".NET user secrets",
+    ".NET user secret",
+    "csproj user secret",
+    "csproj user secrets",
+    ".NET",
+    "C#",
+    "CSharp",
+    "ASP.NET"
+  ],
   "license": "MIT",
   "activationEvents": [],
   "main": "./out/extension.js",
