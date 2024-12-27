@@ -9,13 +9,18 @@ import {
 } from './csProj';
 import {v4 as uuid} from 'uuid';
 import { CsProjFileInfo, CsProjOperation } from './types';
+import path from 'path';
  
-export const handleUserSecretCommand = async () =>{
+export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{
 	try{
-		const workspacePath = await getWorkspacePath();
-		const csProjFile = await selectCsProjFile(workspacePath);
+		const csProjFile = await(resourceUri 
+			? getCsProjFromUri(resourceUri)
+			: getSelectedCsProj()
+		);
+
 		const secretsOperation = await processUserSecrets(csProjFile);
 		await openUserSecretsFile(secretsOperation.userSecretsId);
+	
 	} catch(error){
 		handleError(error);
 	}
@@ -56,6 +61,26 @@ const selectCsProjFile = async (workspacePath: string ):Promise<CsProjFileInfo> 
 	}
 	return selectedFile;
 };
+
+const getCsProjFromUri = (uri: vscode.Uri): CsProjFileInfo =>{
+	if(!uri.fsPath.endsWith('.csproj')){
+		throw new Error('Selected file is not a csproj file');
+	}
+
+	return { 
+		fullPath: uri.fsPath,
+		fileName: path.basename(uri.fsPath),
+	};
+};
+
+const getSelectedCsProj = async ():  Promise<CsProjFileInfo> => {
+	const workspacePath = await getWorkspacePath();
+	if (!workspacePath){
+		throw new Error('No workspace path found');
+	}
+
+	return await selectCsProjFile(workspacePath);
+} ;
 
 const processUserSecrets = async (csProjFile: {fullPath: string}): Promise<CsProjOperation> => {
 	const parsedDocument = await parseDocument(csProjFile.fullPath);

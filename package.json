@@ -46,6 +46,15 @@
         }
       }
     },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "dotnet.manageUserSecrets",
+          "when": "resourceExtname == .csproj",
+          "group": "navigation"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "dotnet.manageUserSecrets",
