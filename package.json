@@ -2,7 +2,7 @@
   "name": "usersecret",
   "displayName": "UserSecret",
   "description": "manage .NET user secret",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -13,7 +13,7 @@
   "icon": "images/asrar.jpg",
   "repository": {
     "type": "git",
-    "url":"https://github.com/hraiba/ManageUserSecret.git"
+    "url": "https://github.com/hraiba/ManageUserSecret.git"
   },
   "license": "MIT",
   "activationEvents": [],
