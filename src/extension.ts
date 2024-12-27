@@ -9,7 +9,6 @@ import {
 } from './csProj';
 import {v4 as uuid} from 'uuid';
 import { CsProjFileInfo, CsProjOperation } from './types';
-import { waitForDebugger } from 'inspector';
 
 export  const activate = (context: vscode.ExtensionContext) => {
 	const disposable = vscode.commands.registerCommand(
