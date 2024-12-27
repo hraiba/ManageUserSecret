@@ -2,7 +2,7 @@
   "name": "usersecret",
   "displayName": "UserSecret",
   "description": "manage .NET user secret",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -11,7 +11,7 @@
   ],
   "publisher": "MoHraiba",
   "icon": "images/asrar.jpg",
-  "license":"MIT",
+  "license": "MIT",
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
