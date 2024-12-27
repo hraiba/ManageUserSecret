@@ -18,6 +18,13 @@ export interface SecretsPathConfig {
   basePath: string[];
   filename: string;
 }
+
+export interface CsProjOperation{
+    parsedDocument: ProjectStructure,
+    fullPath: string; 
+    userSecretsId:  string;
+}
+
 export type SupportedPlatform = "win32" | "linux" | "darwin";
 
 export const SECRETS_CONFIG: Record<SupportedPlatform, SecretsPathConfig> = {
