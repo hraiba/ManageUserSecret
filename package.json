@@ -10,6 +10,7 @@
     "Other"
   ],
   "publisher": "MoHraiba",
+  "icon": "images/asrar.jpg",
   "license":"MIT",
   "activationEvents": [],
   "main": "./out/extension.js",
