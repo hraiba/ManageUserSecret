@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { handleUserSecretCommand } from './userSecretsCommandHandler';
+import { handleUserSecretCommand } from './handlers/userSecretsCommandHandler';
 
 
 export  const activate = (context: vscode.ExtensionContext) => {

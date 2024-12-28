@@ -1,4 +1,4 @@
-import { SecretsPathConfig, SupportedPlatform } from "./types";
+import { SecretsPathConfig, SupportedPlatform } from "./types/csProjTypes";
 
 export const SECRETS_CONFIG: Record<SupportedPlatform, SecretsPathConfig> = {
   win32: {

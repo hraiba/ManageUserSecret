@@ -6,9 +6,9 @@ import {
 	insertUserSecretsId,
 	getUserSecretsFilePath,
 	ensureUserSecretFile,
-} from './csProj';
+} from '../csProj';
 import {v4 as uuid} from 'uuid';
-import { CsProjFileInfo, CsProjOperation } from './types';
+import { CsProjFileInfo, CsProjOperation } from '../types/csProjTypes';
 import path from 'path';
  
 export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{

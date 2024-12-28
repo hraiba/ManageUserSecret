@@ -6,7 +6,7 @@ import {
   CsProjFileInfo,
   ProjectStructure,
   SupportedPlatform,
-} from "./types";
+} from "./types/csProjTypes";
 import { SECRETS_CONFIG } from "./config";
 
 export const getAllFilesWithExtension = async (extension: string,)
