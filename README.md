@@ -1,4 +1,4 @@
-# UserSecret README
+# Asrar.net
 
 Manage user secrets: a VS Code extension to manage .NET user secrets file.
 ## Usage
