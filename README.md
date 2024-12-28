@@ -1,6 +1,6 @@
-# Asrar.net
+# Asrar
 
-Manage user secrets: a VS Code extension to manage .NET user secrets file.
+Asrar: a VS Code extension to manage .NET user secrets file.
 ## Usage
 ![](images/usersecret.gif)
 
