@@ -35,11 +35,7 @@ const getWorkspacePath = async (): Promise<string> => {
 };
 
 const selectCsProjFile = async (workspacePath: string ):Promise<CsProjFileInfo> => {
-			const maxDepth = vscode.workspace
-			.getConfiguration('usersecret')
-			.get<number>('maxDepth', 3);
-
-	const csProjFiles = await getAllFilesWithExtension(workspacePath, '.csproj', maxDepth);
+	const csProjFiles = await getAllFilesWithExtension(workspacePath, '.csproj');
 	if (!csProjFiles.length){
 		throw new Error('No .csproj files found in the workspace');
 	}

@@ -12,42 +12,18 @@ import {
 export const getAllFilesWithExtension = async (
   dir: string,
   extension: string,
-  maxDepth: number,
-  currentDepth: number = 0
 ): Promise<CsProjFileInfo[]> => {
-  const results: CsProjFileInfo[] = [];
-
-  if (currentDepth > maxDepth) {
-    return results;
-  }
-
-  try {
-    const dirUri = vscode.Uri.file(dir);
-    const entries = await vscode.workspace.fs.readDirectory(dirUri);
-
-    const tasks = entries.map(async ([name, type]) => {
-      const fullPath = path.join(dir, name);
-      const fileInfo = { fullPath: fullPath, fileName: name };
-
-      if (type === vscode.FileType.Directory) {
-        const subResults = await getAllFilesWithExtension(
-          fullPath,
-          extension,
-          maxDepth,
-          currentDepth + 1
-        );
-        results.push(...subResults);
-      } else if (type === vscode.FileType.File && name.endsWith(extension)) {
-        results.push(fileInfo);
-      }
-    });
-
-    await Promise.all(tasks);
-    return results;
-  } catch (err) {
-    throw err;
-  }
-};
+  const files = await vscode.workspace.findFiles(
+    `**/*${extension}`, 
+    '{**/node_modules/**, **/bin/**, **/obj/**, **/Properties/**}');
+  const result = files.map(f => {
+    return{
+      fullPath:f.fsPath,
+      fileName: path.basename(f.fsPath),
+    };
+  }); 
+  return result;
+}; 
 
 export const parseDocument = async (
   path: string

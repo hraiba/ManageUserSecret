@@ -35,17 +35,6 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "configuration": {
-      "type": "object",
-      "title": "Extension Setting",
-      "properties": {
-        "usersecret.maxDepth": {
-          "type": "number",
-          "default": 3,
-          "description": "Maximum depth for searching .csproj files."
-        }
-      }
-    },
     "menus": {
       "explorer/context": [
         {

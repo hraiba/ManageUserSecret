@@ -5,12 +5,6 @@ Manage user secrets: a VS Code extension to manage .NET user secrets file.
 ![](images/usersecret.png)
 
 ![](images/context.png)
-## Setting
-- maxDepth: Maximum depth for searching .csproj files.
-  - default value: 3
-  - Go to File > Preferences > Settings in VS Code.
-  - Search for `usersecret` extension settings.
-  - Adjust the `maxDepth` value and test its effect.
 
 ## Features
 
@@ -18,7 +12,5 @@ Manage user secrets: a VS Code extension to manage .NET user secrets file.
 - Add, remove, and update secrets without leaving the editor.
 
 ## PreRelease Notes
-
-### 1.0.0
 
 - Initial release of UserSecret.
