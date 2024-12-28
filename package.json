@@ -2,7 +2,7 @@
   "name": "usersecret",
   "displayName": "Asrar.net",
   "description": "An extension to manage .NET projects user secrets file",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "engines": {
     "vscode": "^1.96.0"
   },

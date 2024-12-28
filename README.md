@@ -2,7 +2,7 @@
 
 Manage user secrets: a VS Code extension to manage .NET user secrets file.
 ## Usage
-![](images/usersecret.png)
+![](images/usersecret.gif)
 
 ![](images/context.png)
 
