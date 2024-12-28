@@ -1,6 +1,6 @@
 {
   "name": "usersecret",
-  "displayName": "Asrar.net",
+  "displayName": "Asrar",
   "description": "An extension to manage .NET projects user secrets file",
   "version": "0.6.2",
   "engines": {
