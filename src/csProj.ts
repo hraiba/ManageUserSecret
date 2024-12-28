@@ -3,20 +3,20 @@ import { parseStringPromise, Builder } from "xml2js";
 import * as os from "os";
 import * as vscode from "vscode";
 import {
-  CsProjFileInfo,
+  CsProject,
   ProjectStructure,
   SupportedPlatform,
 } from "./types/csProjTypes";
 import { SECRETS_CONFIG } from "./config";
 
 export const getAllFilesWithExtension = async (extension: string,)
-  : Promise<CsProjFileInfo[]> => {
+  : Promise<CsProject[]> => {
   const files = await vscode.workspace.findFiles(
     `**/*${extension}`, 
     '{**/node_modules/**, **/bin/**, **/obj/**, **/Properties/**}');
   const result = files.map(f => {
     return{
-      fullPath:f.fsPath,
+      uri:f,
       fileName: path.basename(f.fsPath),
     };
   }); 
@@ -24,10 +24,9 @@ export const getAllFilesWithExtension = async (extension: string,)
 }; 
 
 export const parseDocument = async (
-  path: string
+  uri:vscode.Uri
 ): Promise<ProjectStructure> => {
   try {
-    const uri = vscode.Uri.file(path);
     const fileContent = await vscode.workspace.fs.readFile(uri);
     const parsedContent = await parseStringPromise(
       new TextDecoder().decode(fileContent)
@@ -58,7 +57,7 @@ export const getUserSecretsId = async (
 };
 
 export const insertUserSecretsId = async (
-  path: string,
+  uri: vscode.Uri,
   parsedDocument: ProjectStructure,
   userSecretsId: string
 ): Promise<string> => {
@@ -73,7 +72,6 @@ export const insertUserSecretsId = async (
     propertyGroup.UserSecretsId = [userSecretsId];
     const builder = new Builder();
     const updatedDocument = builder.buildObject(parsedDocument);
-    const uri = vscode.Uri.file(path);
     await vscode.workspace.fs.writeFile(
       uri,
       new TextEncoder().encode(updatedDocument)
@@ -86,7 +84,7 @@ export const insertUserSecretsId = async (
 
 export const getUserSecretsFilePath = async (
   userSecretsId: string | undefined
-): Promise<string | undefined> => {
+): Promise<vscode.Uri | undefined> => {
   try {
     if (!userSecretsId) {
       return undefined;
@@ -98,12 +96,13 @@ export const getUserSecretsFilePath = async (
       throw new Error(`Unsupported platform: ${platform}`);
     }
 
-    return path.join(
+    const p =  path.join(
       os.homedir(),
       ...config.basePath,
       userSecretsId,
       config.filename
     );
+    return vscode.Uri.file(p);
   } catch (error: any) {
     console.error(`Failed to get secrets file path: ${error.message}`);
     return undefined;
@@ -111,10 +110,9 @@ export const getUserSecretsFilePath = async (
 };
 
 export const ensureUserSecretFile = async (
-  filePath: string
+  uri: vscode.Uri
 ): Promise<string> => {
   try {
-    const uri = vscode.Uri.file(filePath);
     try {
       await vscode.workspace.fs.stat(uri);
     } catch (error) {

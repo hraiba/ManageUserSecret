@@ -8,7 +8,7 @@ import {
 	ensureUserSecretFile,
 } from '../csProj';
 import {v4 as uuid} from 'uuid';
-import { CsProjFileInfo, CsProjOperation } from '../types/csProjTypes';
+import { CsProject, CsProjOperation } from '../types/csProjTypes';
 import path from 'path';
  
 export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{
@@ -17,7 +17,7 @@ export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{
 			? getCsProjFromUri(resourceUri)
 			: selectCsProjFile());
 
-		const secretsOperation = await processUserSecrets(csProjFile);
+		const secretsOperation = await processUserSecrets(csProjFile.uri);
 		await openUserSecretsFile(secretsOperation.userSecretsId);
 	
 	} catch(error){
@@ -25,7 +25,7 @@ export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{
 	}
 };
 
-const selectCsProjFile = async ():Promise<CsProjFileInfo> => {
+const selectCsProjFile = async ():Promise<CsProject> => {
 	const csProjFiles = await getAllFilesWithExtension('.csproj');
 	if (!csProjFiles.length){
 		throw new Error('No .csproj files found in the workspace');
@@ -43,25 +43,25 @@ const selectCsProjFile = async ():Promise<CsProjFileInfo> => {
 	}
 
 	const selectedFile = csProjFiles.find(f => f.fileName === selectedFileName);
-	if (!selectedFile?.fullPath){
+	if (!selectedFile?.uri){
 		throw new Error('Selected file not found');
 	}
 	return selectedFile;
 };
 
-const getCsProjFromUri = (uri: vscode.Uri): CsProjFileInfo =>{
+const getCsProjFromUri = (uri: vscode.Uri): CsProject =>{
 	if(!uri.fsPath.endsWith('.csproj')){
 		throw new Error('Selected file is not a csproj file');
 	}
 
 	return { 
-		fullPath: uri.fsPath,
+		uri: uri,
 		fileName: path.basename(uri.fsPath),
 	};
 };
 
-const processUserSecrets = async (csProjFile: {fullPath: string}): Promise<CsProjOperation> => {
-	const parsedDocument = await parseDocument(csProjFile.fullPath);
+const processUserSecrets = async (uri: vscode.Uri): Promise<CsProjOperation> => {
+	const parsedDocument = await parseDocument(uri);
 	let userSecretsId = await getUserSecretsId(parsedDocument);
 
 	if (!userSecretsId){
@@ -72,14 +72,14 @@ const processUserSecrets = async (csProjFile: {fullPath: string}): Promise<CsPro
 
 		userSecretsId = uuid(); 
 		await insertUserSecretsId(
-			csProjFile.fullPath,
+			uri,
 			parsedDocument,
 			userSecretsId
 		);
 	}
 	return {
 		parsedDocument, 
-		fullPath: csProjFile.fullPath,
+		uri: uri,
 		userSecretsId
 	};
 };

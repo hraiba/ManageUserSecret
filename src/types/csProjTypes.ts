@@ -1,5 +1,7 @@
-export interface CsProjFileInfo {
-  fullPath: string;
+import * as vscode from "vscode";
+
+export interface CsProject {
+  uri: vscode.Uri;
   fileName: string;
 }
 
@@ -21,7 +23,7 @@ export interface SecretsPathConfig {
 
 export interface CsProjOperation{
     parsedDocument: ProjectStructure,
-    fullPath: string; 
+    uri: vscode.Uri, 
     userSecretsId:  string;
 }
 
