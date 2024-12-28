@@ -15,8 +15,7 @@ export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{
 	try{
 		const csProjFile = await(resourceUri 
 			? getCsProjFromUri(resourceUri)
-			: getSelectedCsProj()
-		);
+			: selectCsProjFile());
 
 		const secretsOperation = await processUserSecrets(csProjFile);
 		await openUserSecretsFile(secretsOperation.userSecretsId);
@@ -26,16 +25,8 @@ export const handleUserSecretCommand = async (resourceUri?:vscode.Uri) =>{
 	}
 };
 
-const getWorkspacePath = async (): Promise<string> => {
-	const workspaceFolders = vscode.workspace.workspaceFolders;
-	if (!workspaceFolders?.length){ 
-		throw new Error('No workspace folder is open.');
-	}
-	return workspaceFolders[0].uri.fsPath;
-};
-
-const selectCsProjFile = async (workspacePath: string ):Promise<CsProjFileInfo> => {
-	const csProjFiles = await getAllFilesWithExtension(workspacePath, '.csproj');
+const selectCsProjFile = async ():Promise<CsProjFileInfo> => {
+	const csProjFiles = await getAllFilesWithExtension('.csproj');
 	if (!csProjFiles.length){
 		throw new Error('No .csproj files found in the workspace');
 	}
@@ -44,7 +35,7 @@ const selectCsProjFile = async (workspacePath: string ):Promise<CsProjFileInfo> 
 		csProjFiles.map(f => f.fileName),
 		{
 			placeHolder: 'Select a .csproj file',
-			ignoreFocusOut: true
+			ignoreFocusOut: true,
 		}
 	);
 	if(!selectedFileName){
@@ -68,15 +59,6 @@ const getCsProjFromUri = (uri: vscode.Uri): CsProjFileInfo =>{
 		fileName: path.basename(uri.fsPath),
 	};
 };
-
-const getSelectedCsProj = async ():  Promise<CsProjFileInfo> => {
-	const workspacePath = await getWorkspacePath();
-	if (!workspacePath){
-		throw new Error('No workspace path found');
-	}
-
-	return await selectCsProjFile(workspacePath);
-} ;
 
 const processUserSecrets = async (csProjFile: {fullPath: string}): Promise<CsProjOperation> => {
 	const parsedDocument = await parseDocument(csProjFile.fullPath);

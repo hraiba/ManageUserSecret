@@ -5,14 +5,12 @@ import * as vscode from "vscode";
 import {
   CsProjFileInfo,
   ProjectStructure,
-  SECRETS_CONFIG,
   SupportedPlatform,
 } from "./types";
+import { SECRETS_CONFIG } from "./config";
 
-export const getAllFilesWithExtension = async (
-  dir: string,
-  extension: string,
-): Promise<CsProjFileInfo[]> => {
+export const getAllFilesWithExtension = async (extension: string,)
+  : Promise<CsProjFileInfo[]> => {
   const files = await vscode.workspace.findFiles(
     `**/*${extension}`, 
     '{**/node_modules/**, **/bin/**, **/obj/**, **/Properties/**}');
