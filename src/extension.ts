@@ -5,7 +5,7 @@ import { handleUserSecretCommand } from './handlers/userSecretsCommandHandler';
 export  const activate = (context: vscode.ExtensionContext) => {
 	const disposable = vscode.commands.registerCommand(
 		'dotnet.manageUserSecrets',
-		handleUserSecretCommand
+	(resourceUri: vscode.Uri) => handleUserSecretCommand(context, resourceUri)
 );
 
 context.subscriptions.push(disposable);
