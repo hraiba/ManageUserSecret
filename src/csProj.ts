@@ -120,6 +120,7 @@ export const ensureUserSecretFile = async (
       await vscode.workspace.fs.writeFile(uri, content);
     }
 
+    // some comment to check the git changes
     const fileContent = await vscode.workspace.fs.readFile(uri);
     return new TextDecoder().decode(fileContent);
   } catch (error: any) {
